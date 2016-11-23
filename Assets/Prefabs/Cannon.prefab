@@ -228,6 +228,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mount: {fileID: 4000012395565198}
-  fireForce: 8000
+  fireForce: 6000
   fireOffset: 0.2
-  recoil: 250
+  recoil: 35
+  angleLimit: 100
+  angleSpeed: 10

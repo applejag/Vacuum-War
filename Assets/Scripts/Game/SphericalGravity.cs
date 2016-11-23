@@ -15,7 +15,7 @@ public sealed class SphericalGravity : SingletonBase<SphericalGravity> {
 			bodies.Add(body);
 	}
 
-	void Update() {
+	void FixedUpdate() {
 		bodies.RemoveWhere(b => b == null);
 
 		foreach (var a in bodies) {
@@ -31,7 +31,7 @@ public sealed class SphericalGravity : SingletonBase<SphericalGravity> {
 				float sqrDist = Vector3.SqrMagnitude(delta);
 				float force = gravity * a.mass * b.mass / sqrDist;
 
-				a.AddForce(delta.normalized * force * Time.deltaTime, ForceMode.Acceleration);
+				a.AddForce(delta.normalized * force * Time.fixedDeltaTime, ForceMode.Acceleration);
 			}
 		}
 	}
