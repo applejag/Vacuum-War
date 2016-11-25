@@ -232,4 +232,4 @@ MonoBehaviour:
   fireOffset: 0.2
   recoil: 35
   angleLimit: 100
-  angleSpeed: 10
+  angleSpeed: 15

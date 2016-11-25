@@ -23,6 +23,10 @@ public class CannonUI : EventTrigger {
 		rect = GetComponent<RectTransform>();
 	}
 
+	void Start() {
+		image.fillAmount = 1f / cannon.planet.cannons.Count;
+	}
+
 	void Update() {
 		if (pointerID.HasValue) {
 			// Calculate X and Z where Y is 0
@@ -37,7 +41,8 @@ public class CannonUI : EventTrigger {
 		}
 
 		// Move so it overlays the cannon
-		rect.anchoredPosition = Camera.main.WorldToCanvasPoint(cannon.mount.position);
+		rect.anchoredPosition = Camera.main.WorldToCanvasPoint(cannon.planet.transform.position);
+		rect.localEulerAngles = -Vector3.forward * (cannon.transform.eulerAngles.y + image.fillAmount * 360);
 	}
 
 	public override void OnBeginDrag(PointerEventData eventData) {
