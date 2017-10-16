@@ -13,7 +13,9 @@ public class e_Transform : Editor {
 	private Material mat;
 	private Material mat2;
 
-	private string label { get { return Selection.transforms.Length > 1 ? "Move (" + Selection.transforms.Length + ") objects" : "Move " + Selection.transforms[0].name; } }
+	private string label => Selection.transforms.Length > 1 
+		? "Move (" + Selection.transforms.Length + ") objects" 
+		: "Move " + Selection.transforms[0].name;
 
 	void OnEnable() {
 		this.positionProperty = this.serializedObject.FindProperty("m_LocalPosition");
@@ -93,8 +95,8 @@ public class e_Transform : Editor {
 			RaycastHit hit;
 			if (Physics.Raycast(ray, out hit, Camera.current.farClipPlane, LayerMask.GetMask("Default", "Terrain"))) {
 				Handles.color = new Color(0, 1, 1);
-				Handles.ArrowCap(controlID, hit.point, Quaternion.FromToRotation(Vector3.forward, hit.normal), 1);
-				Handles.CircleCap(controlID, hit.point, Quaternion.FromToRotation(Vector3.forward, hit.normal), 1);
+				Handles.ArrowHandleCap(controlID, hit.point, Quaternion.FromToRotation(Vector3.forward, hit.normal), 1, EventType.ignore);
+				Handles.CircleHandleCap(controlID, hit.point, Quaternion.FromToRotation(Vector3.forward, hit.normal), 1, EventType.ignore);
 
 				#region Draw meshes
 				foreach (var filter in hit.collider.GetComponentsInChildren<MeshFilter>()) {
@@ -164,7 +166,7 @@ public class e_Transform : Editor {
 				Vector3 newpos = lastHit.point + t.position - center;
 
 				Handles.color = new Color(1, 1, 0, .5f);
-				Handles.CircleCap(controlID, newpos, Quaternion.FromToRotation(Vector3.forward, Vector3.up), 1);
+				Handles.CircleHandleCap(controlID, newpos, Quaternion.FromToRotation(Vector3.forward, Vector3.up), 1, EventType.ignore);
 				foreach(var filter in t.GetComponentsInChildren<MeshFilter>()) {
 					Vector3 offset = filter.transform.position - t.position;
 					mat.SetPass(0);
@@ -211,14 +213,14 @@ public class e_Transform : Editor {
 
 	private const float POSITION_MAX = 100000.0f;
 
-	private static GUIContent positionGUIContent = new GUIContent(LocalString("Position")
+	private static readonly GUIContent positionGUIContent = new GUIContent(LocalString("Position")
 																 , LocalString("The local position of this Game Object relative to the parent."));
-	private static GUIContent rotationGUIContent = new GUIContent(LocalString("Rotation")
+	private static readonly GUIContent rotationGUIContent = new GUIContent(LocalString("Rotation")
 																 , LocalString("The local rotation of this Game Object relative to the parent."));
-	private static GUIContent scaleGUIContent = new GUIContent(LocalString("Scale")
+	private static readonly GUIContent scaleGUIContent = new GUIContent(LocalString("Scale")
 																 , LocalString("The local scaling of this Game Object relative to the parent."));
 
-	private static string positionWarningText = LocalString("Due to floating-point precision limitations, it is recommended to bring the world coordinates of the GameObject within a smaller range.");
+	private static readonly string positionWarningText = LocalString("Due to floating-point precision limitations, it is recommended to bring the world coordinates of the GameObject within a smaller range.");
 
 	private SerializedProperty positionProperty;
 	private SerializedProperty rotationProperty;

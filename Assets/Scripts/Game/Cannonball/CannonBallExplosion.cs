@@ -13,11 +13,11 @@ public class CannonBallExplosion : MonoBehaviour {
 
 	void Start () {
 		lightStartIntensity = pointLight.intensity;
-		Destroy(gameObject, particles.startLifetime);
+		Destroy(gameObject, particles.main.startLifetime.constant);
 	}
 
 	void Update() {
 		aliveTime += Time.deltaTime;
-		pointLight.intensity = lightStartIntensity * lightMultiplier.Evaluate(aliveTime / particles.startLifetime);
+		pointLight.intensity = lightStartIntensity * lightMultiplier.Evaluate(aliveTime / particles.main.startLifetime.constant);
 	}
 }

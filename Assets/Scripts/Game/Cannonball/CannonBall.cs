@@ -54,9 +54,9 @@ public class CannonBall : MonoBehaviour {
 			ParticleSystem part = child.GetComponent<ParticleSystem>();
 
 			float? time = null;
-			if (trail && part) time = Mathf.Max(part.startLifetime, trail.time);
+			if (trail && part) time = Mathf.Max(part.main.startLifetime.constant, trail.time);
 			else if (trail) time = trail.time;
-			else if (part) time = part.startLifetime;
+			else if (part) time = part.main.startLifetime.constant;
 
 			// Set a death timer
 			if (time.HasValue) {
