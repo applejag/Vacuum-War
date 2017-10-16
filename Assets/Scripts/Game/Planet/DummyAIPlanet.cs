@@ -2,7 +2,6 @@
 using System.Collections;
 using ExtensionMethods;
 
-[DisallowMultipleComponent]
 public sealed class DummyAIPlanet : Planet {
 
 	public Planet target;

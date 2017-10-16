@@ -3,17 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 
 [DisallowMultipleComponent]
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody2D))]
 public abstract class Planet : MonoBehaviour {
 
 	[System.NonSerialized]
-	public Rigidbody body;
+	public Rigidbody2D body;
 
 	[System.NonSerialized]
 	public List<Cannon> cannons = new List<Cannon>();
 	
 	void Awake() {
-		body = GetComponent<Rigidbody>();
+		body = GetComponent<Rigidbody2D>();
 	}
 
 }

@@ -2,7 +2,6 @@
 using System.Collections;
 using ExtensionMethods;
 
-[RequireComponent(typeof(Planet))]
 public sealed class PlayerControlledPlanet : Planet {
 	
 	void Start() {

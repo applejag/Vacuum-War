@@ -42,14 +42,13 @@ public class Cannon : MonoBehaviour {
 	public void FireCannonBall() {
 		GameObject clone = Instantiate(GamePresets.cannonball, mount.position + mount.forward * fireOffset, Quaternion.Euler(mount.forward)) as GameObject;
 
-		Rigidbody body = clone.GetComponent<Rigidbody>();
-		body.AddForce(mount.forward * fireForce, ForceMode.Impulse);
-		SphericalGravity.RegisterRigidbody(body);
+		Rigidbody2D body = clone.GetComponent<Rigidbody2D>();
+		body.AddForce(mount.forward * fireForce, ForceMode2D.Impulse);
 
 		Destroy(clone, 15);
 
 		// Add force to planet
-		planet.body.AddForceAtPosition(-mount.forward * fireForce * recoil, mount.position, ForceMode.Impulse);
+		planet.body.AddForceAtPosition(-mount.forward * fireForce * recoil, mount.position, ForceMode2D.Impulse);
 	}
 
 	public void SetLocalTargetAngle(float localAngles) {
