@@ -6,13 +6,13 @@ using System.Collections.Generic;
 [RequireComponent(typeof(Rigidbody2D))]
 public abstract class Planet : MonoBehaviour {
 
-	[System.NonSerialized]
+	[HideInInspector]
 	public Rigidbody2D body;
 
-	[System.NonSerialized]
+	[HideInInspector]
 	public List<Cannon> cannons = new List<Cannon>();
 	
-	void Awake() {
+	private void Awake() {
 		body = GetComponent<Rigidbody2D>();
 	}
 

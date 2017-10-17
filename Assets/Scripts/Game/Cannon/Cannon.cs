@@ -1,10 +1,19 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using ExtensionMethods;
+using JetBrains.Annotations;
 
 public class Cannon : MonoBehaviour {
 
 	public Transform mount;
+	public LineRenderer aim;
+	[Header("Prefab")]
+	public GameObject cannonBallPrefab;
+	public float cannonBallRadius = 0.5f;
+
 	[Header("Forces")]
 	public float fireForce = 200f;
 	public float fireOffset = 0.2f;
@@ -12,52 +21,82 @@ public class Cannon : MonoBehaviour {
 	[Header("Angles")]
 	public float angleLimit = 100;
 	public float angleSpeed = 300;
+	
+	[NonSerialized]
+	public bool isAiming;
+	[NonSerialized]
+	public float aimForceMultiplier = 0;
 
 	private float currentAngle;
 	private float targetAngle;
 
-	[System.NonSerialized]
+	public Vector3 FireFrom => mount.position + mount.up * fireOffset;
+
+	[HideInInspector]
 	public Planet planet;
 
-	void Awake() {
+	[UsedImplicitly]
+	private void Awake() {
 		planet = GetComponentInParent<Planet>();
 		planet.cannons.Add(this);
 	}
 
 #if UNITY_EDITOR
-	void OnDrawGizmosSelected() {
+	[UsedImplicitly]
+	private void OnDrawGizmosSelected() {
 		Gizmos.color = Color.red;
-		Gizmos.DrawRay(mount.position, mount.forward);
-		Gizmos.DrawRay(mount.position, (-transform.eulerAngles.y + angleLimit + 90).FromDegrees().xzy(0));
-		Gizmos.DrawRay(mount.position, (-transform.eulerAngles.y - angleLimit + 90).FromDegrees().xzy(0));
+		Gizmos.DrawRay(mount.position + mount.up * fireOffset, mount.up);
+		Gizmos.DrawRay(mount.position, (-transform.eulerAngles.z + angleLimit + 90).FromDegrees());
+		Gizmos.DrawRay(mount.position, (-transform.eulerAngles.z - angleLimit + 90).FromDegrees());
 	}
 #endif
 
-	void Update() {
+	[UsedImplicitly]
+	private void Update() {
 		// Turn
 		currentAngle = Mathf.Lerp(currentAngle, targetAngle, angleSpeed * Time.deltaTime);
-		mount.localEulerAngles = Vector3.up * currentAngle;
+		mount.localEulerAngles = new Vector3(0, 0, currentAngle);
+
+		aim.enabled = isAiming;
+		if (isAiming)
+		{
+			aim.useWorldSpace = true;
+			Vector3[] path = CalculatePath(cannonBallRadius).Select(v => new Vector3(v.x, v.y)).ToArray();
+			aim.positionCount = path.Length;
+			aim.SetPositions(path);
+		}
+	}
+
+	private List<Vector2> CalculatePath(float radius)
+	{
+		return CircularGravityBody.CircleRayCastPath(FireFrom, radius, mount.up * fireForce * aimForceMultiplier,
+			Mathf.PI * radius);
 	}
 
 	public void FireCannonBall() {
-		GameObject clone = Instantiate(GamePresets.cannonball, mount.position + mount.forward * fireOffset, Quaternion.Euler(mount.forward)) as GameObject;
+		GameObject clone = Instantiate(cannonBallPrefab, FireFrom, Quaternion.identity);
 
-		Rigidbody2D body = clone.GetComponent<Rigidbody2D>();
-		body.AddForce(mount.forward * fireForce, ForceMode2D.Impulse);
-
-		Destroy(clone, 15);
+		// Calculate path
+		var ball = clone.GetComponent<CannonBall>();
+		ball.radius = cannonBallRadius;
+		ball.path = CalculatePath(cannonBallRadius);
 
 		// Add force to planet
-		planet.body.AddForceAtPosition(-mount.forward * fireForce * recoil, mount.position, ForceMode2D.Impulse);
+		planet.body.AddForceAtPosition(-mount.up * fireForce * recoil, mount.position, ForceMode2D.Impulse);
 	}
 
 	public void SetLocalTargetAngle(float localAngles) {
 		targetAngle = Mathf.Clamp(Mathf.DeltaAngle(0, localAngles), -angleLimit, angleLimit);
 	}
 
-	public void SetWorldTargetAngle(float worldAngles) {
-		var degrees = transform.forward.xz().ToDegrees();
-		targetAngle = Mathf.Clamp(Mathf.DeltaAngle(0, degrees-worldAngles), -angleLimit, angleLimit);
+	public void SetWorldTargetPosition(Vector3 position)
+	{
+		Vector3 deltaPos = position - transform.position;
+		aimForceMultiplier = Mathf.Min(deltaPos.magnitude / 20f + 0.5f, 2);
+
+		float degrees = ((Vector2)deltaPos).ToDegrees();
+		float localDegrees = degrees - transform.eulerAngles.z;
+		SetLocalTargetAngle(localDegrees - 90);
 	}
 
 }

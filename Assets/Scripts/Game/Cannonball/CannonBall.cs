@@ -2,56 +2,59 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using JetBrains.Annotations;
 
-[RequireComponent(typeof(Rigidbody))]
 [DisallowMultipleComponent]
 public class CannonBall : MonoBehaviour {
 	
-	public float noCollisionDuration = 0.5f;
-	public float selfDestruct = 5;
-	
-	private List<Collider> disabledColliders = new List<Collider>();
+	public float selfDestruct = 5f;
+
+	[HideInInspector]
+	public float radius = 0.5f;
+
+	[HideInInspector]
+	public List<Vector2> path;
+
+	private float lived;
 
 #if UNITY_EDITOR
-	void OnValidate() {
-		noCollisionDuration = Mathf.Max(0, noCollisionDuration);
+	[UsedImplicitly]
+	private void OnValidate() {
 		selfDestruct = Mathf.Max(0, selfDestruct);
 	}
 
-	private SphereCollider sphereCollider;
-	void OnDrawGizmos() {
-		sphereCollider = sphereCollider ?? GetComponent<SphereCollider>();
-		if (!sphereCollider) return;
+	[UsedImplicitly]
+	private void OnDrawGizmos() {
 		Gizmos.color = new Color(1, 0, 0, 0.5f);
-		Gizmos.DrawWireSphere(transform.position, sphereCollider.radius);
+		Gizmos.DrawWireSphere(transform.position, radius);
 	}
 #endif
 
-	void Start() {
-		if (noCollisionDuration > float.Epsilon) {
-			foreach (var col in GetComponentsInChildren<Collider>()) {
-				col.enabled = false;
-				disabledColliders.Add(col);
-			}
-			Invoke("ReenableColliders", noCollisionDuration);
-		}
+	[UsedImplicitly]
+	private void Update()
+	{
+		if (path == null || lived >= CircularGravityBody.rayCastDeltaTime * path.Count)
+			DestroyWithExplosion();
+		else
+		{
+			lived += Time.deltaTime;
+			int indexA = Mathf.Min(Mathf.FloorToInt(lived / CircularGravityBody.rayCastDeltaTime), path.Count - 1);
+			int indexB = Math.Min(indexA + 1, path.Count - 1);
 
-		Destroy(gameObject, selfDestruct);
+			float t = lived / CircularGravityBody.rayCastDeltaTime - indexA;
+
+			Vector2 posA = path[indexA];
+			Vector2 posB = path[indexB];
+
+			transform.position = Vector2.Lerp(posA, posB, t);
+		}
 	}
 
-	void ReenableColliders() {
-		foreach(var col in disabledColliders) {
-			if (col != null)
-				col.enabled = true;
-		}
-		disabledColliders = null;
-	}
-
-	void OnCollisionEnter() {
+	private void DestroyWithExplosion() {
 		// Save all the trails and particle sysyems
 		foreach (Transform child in transform) {
-			TrailRenderer trail = child.GetComponent<TrailRenderer>();
-			ParticleSystem part = child.GetComponent<ParticleSystem>();
+			var trail = child.GetComponent<TrailRenderer>();
+			var part = child.GetComponent<ParticleSystem>();
 
 			float? time = null;
 			if (trail && part) time = Mathf.Max(part.main.startLifetime.constant, trail.time);

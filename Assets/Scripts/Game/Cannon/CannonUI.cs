@@ -3,68 +3,89 @@ using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.EventSystems;
 using ExtensionMethods;
+using JetBrains.Annotations;
 
 [RequireComponent(typeof(Image))]
 [RequireComponent(typeof(RectTransform))]
 [DisallowMultipleComponent]
-public class CannonUI : EventTrigger {
+public class CannonUI : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler {
 
-	[System.NonSerialized]
+	[HideInInspector]
 	public Cannon cannon;
 
 	private Image image;
 	private RectTransform rect;
-	private int? pointerID = null;
+	private int pointerID = -2;
 
 	private Vector2 pointerPosition = Vector2.zero;
+	public Plane plane = new Plane(Vector3.forward, Vector3.zero);
 
-	void Awake() {
+	[UsedImplicitly]
+	private void Awake() {
 		image = GetComponent<Image>();
 		rect = GetComponent<RectTransform>();
 	}
 
-	void Start() {
+	[UsedImplicitly]
+	private void Start() {
 		image.fillAmount = 1f / cannon.planet.cannons.Count;
 	}
 
-	void Update() {
-		if (pointerID.HasValue) {
-			// Calculate X and Z where Y is 0
+#if UNITY_EDITOR
+	[UsedImplicitly]
+	private void OnDrawGizmos()
+	{
+		if (pointerID == -2) return;
+
+		Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
+		float distance;
+		if (!plane.Raycast(ray, out distance)) return;
+
+		Vector3 pos = ray.GetPoint(distance);
+		Gizmos.DrawSphere(pos, 0.5f);
+		Gizmos.DrawLine(cannon.FireFrom, pos);
+	}
+#endif
+
+	[UsedImplicitly]
+	private void Update() {
+		cannon.isAiming = false;
+
+		if (pointerID != -2) {
 			Ray ray = Camera.main.ScreenPointToRay(pointerPosition);
-			RaycastHit hit;
-			
-			if (Physics.Raycast(ray, out hit, GamePresets.raycastLengthLimit, GamePresets.mouseLayerMask)) {
+			float distance;
+			if (plane.Raycast(ray, out distance)) {
 				// Set target to the hit
-				cannon.SetWorldTargetAngle((hit.point - cannon.transform.position).xz().ToDegrees());
+				cannon.isAiming = true;
+				cannon.SetWorldTargetPosition(ray.GetPoint(distance));
 			}
-			
 		}
 
 		// Move so it overlays the cannon
 		rect.anchoredPosition = Camera.main.WorldToCanvasPoint(cannon.planet.transform.position);
-		rect.localEulerAngles = -Vector3.forward * (cannon.transform.eulerAngles.y + image.fillAmount * 360);
+		rect.localEulerAngles = new Vector3(0, 0, cannon.transform.eulerAngles.z - image.fillAmount * 360);
 	}
 
-	public override void OnBeginDrag(PointerEventData eventData) {
+	public void OnBeginDrag(PointerEventData eventData) {
 		image.color = new Color(1,0,0,.2f);
 		pointerID = eventData.pointerId;
 
 		pointerPosition = eventData.position;
 	}
 
-	public override void OnDrag(PointerEventData eventData) {
+	public void OnDrag(PointerEventData eventData) {
 		// Skip if its another pointer
 		if (pointerID != eventData.pointerId) return;
 
 		pointerPosition = eventData.position;
 	}
 
-	public override void OnEndDrag(PointerEventData eventData) {
+	public void OnEndDrag(PointerEventData eventData) {
 		// Skip if its another pointer
 		if (pointerID != eventData.pointerId) return;
 		
 		image.color = Color.clear;
-		pointerID = null;
+		pointerID = -2;
 
 		if (!eventData.hovered.Contains(gameObject)) {
 			// Only fire if not hovering the same object

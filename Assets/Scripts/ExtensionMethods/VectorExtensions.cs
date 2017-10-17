@@ -69,23 +69,23 @@ namespace ExtensionMethods {
 			return new Vector3 (vec.z, vec.y, vec.x);
 		}
 
-		public static Vector3 xyz(this Vector2 vec, float z) {
-			return new Vector3 (vec.x, vec.y, z);
+		public static Vector3 xy_(this Vector2 vec, float _) {
+			return new Vector3 (vec.x, vec.y, _);
 		}
-		public static Vector3 xzy(this Vector2 vec, float z) {
-			return new Vector3 (vec.x, z, vec.y);
+		public static Vector3 x_y(this Vector2 vec, float _) {
+			return new Vector3 (vec.x, _, vec.y);
 		}
-		public static Vector3 yxz(this Vector2 vec, float z) {
-			return new Vector3 (vec.y, vec.x, z);
+		public static Vector3 yx_(this Vector2 vec, float _) {
+			return new Vector3 (vec.y, vec.x, _);
 		}
-		public static Vector3 yzx(this Vector2 vec, float z) {
-			return new Vector3 (vec.y, z, vec.x);
+		public static Vector3 y_x(this Vector2 vec, float _) {
+			return new Vector3 (vec.y, _, vec.x);
 		}
-		public static Vector3 zxy(this Vector2 vec, float z) {
-			return new Vector3 (z, vec.x, vec.y);
+		public static Vector3 _xy(this Vector2 vec, float _) {
+			return new Vector3 (_, vec.x, vec.y);
 		}
-		public static Vector3 zyx(this Vector2 vec, float z) {
-			return new Vector3 (z, vec.y, vec.x);
+		public static Vector3 _yx(this Vector2 vec, float _) {
+			return new Vector3 (_, vec.y, vec.x);
 		}
 
 		public static float ToDegrees(this Vector2 vec) {

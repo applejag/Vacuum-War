@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
-using System.Collections;
 
+[DisallowMultipleComponent]
 public abstract class SingletonBase<T> : MonoBehaviour where T : SingletonBase<T> {
 
 	public static T instance;
 
-	protected virtual void Awake() {
+	private void OnEnable() {
 		instance = this as T;
 	}
+
 }
